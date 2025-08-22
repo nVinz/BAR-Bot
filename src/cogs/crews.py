@@ -3,9 +3,9 @@ import discord
 from discord.ext import commands
 from itertools import groupby
 from gspread import Worksheet
-from cogs.pilots import parse_pilots, parse_member_profile
-from cogs.teams import parse_teams
-from utils.google_sheets_utils import cleanup
+from src.cogs.pilots import parse_pilots, parse_member_profile
+from src.cogs.teams import parse_teams
+from src.utils.google_sheets_utils import cleanup
 
 
 iracing_series = ['Sports Car']

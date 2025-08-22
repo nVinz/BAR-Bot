@@ -3,7 +3,7 @@ import discord
 from discord.ext import commands
 from datetime import datetime
 from gspread import Worksheet
-from utils.google_sheets_utils import cleanup
+from src.utils.google_sheets_utils import cleanup
 
 iracing_series = ['Sports Car', 'Formula Car', 'Oval']
 
