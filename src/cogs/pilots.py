@@ -5,6 +5,7 @@ from datetime import datetime
 from gspread import Worksheet
 from src.utils.google_sheets_utils import cleanup
 
+
 iracing_series = ['Sports Car', 'Formula Car', 'Oval']
 
 cells_mapping = {
@@ -12,20 +13,34 @@ cells_mapping = {
     'name': 'B',
     'age': 'C',
     'Sports Car': 'D',
-    'Formula Car': 'E',
-    'Oval': 'F',
-    'last_login': 'G',
-    'last_race': 'H',
-    'recent_30days_count': 'I',
-    'prev_30days_count': 'J'
+    'Sports Car Change': 'E',
+    'Formula Car': 'F',
+    'Formula Car Change': 'G',
+    'Oval': 'H',
+    'Oval Change': 'I',
+    'last_login': 'J',
+    'last_race': 'K',
+    'recent_30days_count': 'L',
+    'prev_30days_count': 'M'
 }
 
-license_style_mapping = {
+last_cell = 'M'
+
+# Old background
+"""license_style_mapping = {
     'A': [102, 204, 255],
     'B': [153, 255, 153],
     'C': [255, 255, 153],
     'D': [255, 204, 153],
     'R': [255, 153, 153]
+}"""
+
+license_style_mapping = {
+    'A': [112, 169, 255],
+    'B': [113, 224, 113],
+    'C': [241, 194, 50],
+    'D': [255, 153, 51],
+    'R': [255, 127, 127]
 }
 
 
@@ -86,10 +101,57 @@ async def parse_member_profile(good_pilots, iracing_client, message):
                     'irating': car_license['irating']
                 }
 
+        good_pilot['ir']['recent_races'] = []
+        for event in ir_profile['recent_events']:
+            if event['event_type'] == 'RACE':
+                result = iracing_client.result(event['subsession_id'])
+                race_result = [p for p in result['session_results'] if p['simsession_name'] == 'RACE'][0]
+                if 'cust_id' in race_result['results'][0]:
+                    user_result = [p for p in race_result['results'] if p['cust_id'] == int(good_pilot['ir_id'])]
+                    if len(user_result) > 0:
+                        user_result = user_result[0]
+                        good_pilot['ir']['recent_races'].append({
+                            'subsession_id': event['subsession_id'],
+                            'license_category': result['license_category'].replace('_', ' '),
+                            'sof': result['event_strength_of_field'],
+                            'incs': user_result['incidents'],
+                            'irating_change': user_result['newi_rating'] - user_result['oldi_rating'],
+                            'license_change': round((user_result['new_sub_level'] - user_result['old_sub_level']) / 100, 1)
+                        })
+                elif 'team_id' in race_result['results'][0]:
+                    for res in race_result['results']:
+                        if len([p for p in res['driver_results'] if p['cust_id'] == int(good_pilot['ir_id'])]):
+                            user_result = [p for p in res['driver_results'] if p['cust_id'] == int(good_pilot['ir_id'])][0]
+                            good_pilot['ir']['recent_races'].append({
+                                'subsession_id': event['subsession_id'],
+                                'license_category': result['license_category'].replace('_', ' '),
+                                'sof': result['event_strength_of_field'],
+                                'incs': user_result['incidents'],
+                                'irating_change': user_result['newi_rating'] - user_result['oldi_rating'],
+                                'license_change': round((user_result['new_sub_level'] - user_result['old_sub_level']) / 100, 1)
+                            })
+
+
+        if len(good_pilot['ir']['recent_races']) > 0:
+            for recent_race in good_pilot['ir']['recent_races']:
+                license_category = recent_race['license_category']
+
+                if 'license_change' in good_pilot['ir'][license_category]:
+                    good_pilot['ir'][license_category]['license_change'] = round(good_pilot['ir'][license_category]['license_change'] + recent_race['license_change'], 1)
+                else:
+                    good_pilot['ir'][license_category]['license_change'] = round(recent_race['license_change'], 1)
+
+                if 'irating_change' in good_pilot['ir'][license_category]:
+                    good_pilot['ir'][license_category]['irating_change'] = round(good_pilot['ir'][license_category]['irating_change'] + recent_race['irating_change'])
+                else:
+                    good_pilot['ir'][license_category]['irating_change'] = round(recent_race['license_change'])
+
         last_login = ir_profile['member_info']['last_login'][:10] # обрезка YYYY-MM-DD
         good_pilot['ir']['last_login'] = f'{datetime.strptime(last_login, '%Y-%m-%d').strftime('%d.%m.%Y')}'
 
         last_login_diff = (datetime.today() - datetime.strptime(last_login, '%Y-%m-%d')).days
+        good_pilot['ir']['last_login_diff_raw'] = last_login_diff
+
         last_login_days = 'дней'
         if last_login_diff % 10 in [1]:
             last_login_days = 'день'
@@ -112,7 +174,7 @@ async def parse_member_profile(good_pilots, iracing_client, message):
         else:
             good_pilot['ir']['last_race'] = None
 
-        if ir_profile['activity'] is not None:
+        """if ir_profile['activity'] is not None:
             good_pilot['ir']['activity'] = {
                 'recent_30days_count': ir_profile['activity']['recent_30days_count'],
                 'prev_30days_count': ir_profile['activity']['prev_30days_count'],
@@ -120,7 +182,21 @@ async def parse_member_profile(good_pilots, iracing_client, message):
                 'most_consecutive_weeks': ir_profile['activity']['most_consecutive_weeks']
         }
         else:
-            good_pilot['ir']['activity'] = None
+            good_pilot['ir']['activity'] = None"""
+
+        pilot_activity = 0
+        if good_pilot['ir']['last_login_diff_raw'] in list(range(0, 2)):
+            pilot_activity +=3
+        elif good_pilot['ir']['last_login_diff_raw'] in list(range(2, 7)):
+            pilot_activity +=2
+        elif good_pilot['ir']['last_login_diff_raw'] in list(range(7, 14)):
+            pilot_activity +=1
+
+        if len(good_pilot['ir']['recent_races']) > 2:
+            pilot_activity +=2
+        elif len(good_pilot['ir']['recent_races']) == 1:
+            pilot_activity +=1
+        good_pilot['ir']['activity'] = pilot_activity
 
     return good_pilots
 
@@ -138,12 +214,50 @@ async def update_pilots(pilots_sheet: Worksheet, good_pilots, message, public_li
         pilots_sheet.update_acell(f'{cells_mapping['age']}{index}', f'{good_pilot['age']}')
         time.sleep(1)
 
-        for series in  iracing_series:
+        for series in iracing_series:
+            safety_class = good_pilot['ir'][series]['safety_class']
+            safety_rating = round(good_pilot['ir'][series]['safety_rating'], 1)
+            irating = round(good_pilot['ir'][series]['irating']/1000, 1)
+
             pilots_sheet.update_acell(f'{cells_mapping[series]}{index}',
-                                   f'[{good_pilot['ir'][series]['safety_class']}] {round(good_pilot['ir'][series]['safety_rating'], 1)}\n{round(good_pilot['ir'][series]['irating']/1000, 1)}k')
+                                   f'[{safety_class}] {safety_rating}\n{irating}k')
             time.sleep(1)
             pilots_sheet.format(f'{cells_mapping[series]}{index}', {
-                "backgroundColor": calculate_cell_background_color(license_style_mapping[good_pilot['ir'][series]['safety_class']])
+                'textFormat': {
+                    'foregroundColor': calculate_cell_background_color(license_style_mapping[good_pilot['ir'][series]['safety_class']]),
+                    'bold': True
+                }
+            })
+            time.sleep(1)
+
+            license_change = ''
+            if 'license_change' in good_pilot['ir'][series]:
+                license_change = good_pilot['ir'][series]['license_change']
+                if license_change > 0:
+                    license_change = f'↑{abs(license_change)}'
+                elif license_change < 0:
+                    license_change = f'↓{abs(license_change)}'
+                else:
+                    license_change = f'~{abs(license_change)}'
+
+            irating_change = ''
+            if 'irating_change' in good_pilot['ir'][series]:
+                irating_change = good_pilot['ir'][series]['irating_change']
+                if irating_change > 0:
+                    irating_change = f'↑{abs(irating_change)}'
+                elif irating_change < 0:
+                    irating_change = f'↓{abs(irating_change)}'
+                else:
+                    irating_change = f'~{abs(irating_change)}'
+
+            pilots_sheet.update_acell(f'{cells_mapping[f'{series} Change']}{index}',
+                                   f'{license_change}\n{irating_change}')
+            time.sleep(1)
+            pilots_sheet.format(f'{cells_mapping[f'{series} Change']}{index}', {
+                'textFormat': {
+                    'foregroundColor': calculate_cell_background_color(license_style_mapping[good_pilot['ir'][series]['safety_class']]),
+                    'bold': True
+                }
             })
             time.sleep(1)
 
@@ -151,10 +265,31 @@ async def update_pilots(pilots_sheet: Worksheet, good_pilots, message, public_li
                                f'{good_pilot['ir']['last_login']}\n({good_pilot['ir']['last_login_diff']})')
         time.sleep(1)
 
+        if good_pilot['ir']['last_login_diff_raw'] > 7:
+            pilots_sheet.format(f'{cells_mapping['last_login']}{index}', {
+                'textFormat': {
+                    'foregroundColor': {
+                        "red": 1.,
+                        "green": 0.3,
+                        "blue": 0.3
+                    }
+                }
+            })
+            time.sleep(1)
+
         if 'last_race' in good_pilot['ir']:
             pilots_sheet.update_acell(f'{cells_mapping['last_race']}{index}',
                                    f'{good_pilot['ir']['last_race']['race_name']} ({good_pilot['ir']['last_race']['race_start_time']})\nQ{good_pilot['ir']['last_race']['race_starting_position']} → P{good_pilot['ir']['last_race']['race_finish_position']}')
             time.sleep(1)
+
+        if index % 2 == 0:
+            pilots_sheet.format(f'A{index}:{last_cell}{index}', {
+                "backgroundColor": {
+                    "red": 0.93,
+                    "green": 0.93,
+                    "blue": 0.93
+                }
+            })
 
 
 class Pilots(commands.Cog, name='Pilots'):

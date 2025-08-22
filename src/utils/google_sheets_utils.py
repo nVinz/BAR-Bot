@@ -37,5 +37,6 @@ class GoogleSheetsUtils(commands.Cog, name='GoogleSheetsUtils'):
 
         self.public_sheet = gspread.service_account().open_by_key(self.config['Keys']['public_sheet'])
 
+
 async def setup(bot: commands.Cog):
     await bot.add_cog(GoogleSheetsUtils(bot))

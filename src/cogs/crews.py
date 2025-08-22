@@ -14,9 +14,12 @@ cells_mapping = {
     'team_name': 'A',
     'nickname': 'B',
     'sof': 'C',
-    'avg_age': 'D'
+    'avg_age': 'D',
+    'pilot_activity': 'E',
+    'pilot_speed': 'F'
 }
 
+last_cell = 'G'
 
 async def parse_crews(crews_sheet: Worksheet, crews_count, good_pilots, teams, message, settings_link):
     good_crews = []
@@ -34,8 +37,10 @@ async def parse_crews(crews_sheet: Worksheet, crews_count, good_pilots, teams, m
         team_is_correct = True if len([p for p in teams if p['name'] == crew_data[0]]) else False
 
         if pilot_is_correct and team_is_correct:
+            team = [p for p in teams if p['name'] == crew_data[0]][0]
             good_crews.append({
                 'team_name': crew_data[0],
+                'team_logo': team['logo'],
                 'nickname': crew_data[1],
                 'role': crew_data[2],
             })
@@ -57,6 +62,7 @@ def calculate_averages(grouped_good_crews, good_pilots):
 
         sof = []
         age = []
+        team_activity = []
         new_good_crews[key]['pilots'] = []
 
         for pilot in value:
@@ -71,9 +77,30 @@ def calculate_averages(grouped_good_crews, good_pilots):
                 sof.append(good_pilot['ir'][series]['irating'])
 
             age.append(int(good_pilot['age']))
+            team_activity.append(good_pilot['ir']['activity'])
 
-        new_good_crews[key]['sof'] = sum(sof)/len(sof)
-        new_good_crews[key]['avg_age'] = sum(age)/len(age)
+        new_good_crews[key]['team_logo'] = value[0]['team_logo']
+        new_good_crews[key]['sof'] = round(sum(sof)/len(sof))
+        new_good_crews[key]['avg_age'] = round(sum(age)/len(age))
+        new_good_crews[key]['team_activity'] = round(sum(team_activity)/len(team_activity))
+
+        for pilot in new_good_crews[key]['pilots']:
+            for series in iracing_series:
+                sof_of_team = round(new_good_crews[key]['sof'] / pilot['ir'][series]['irating'], 2)
+                pilot_speed = 0
+                if sof_of_team <= 0.9:
+                    pilot_speed += 2
+                elif sof_of_team <= 1:
+                    pilot_speed += 1
+
+                if pilot['ir'][series]['irating'] >= 3000:
+                    pilot_speed += 3
+                elif pilot['ir'][series]['irating'] >= 2000:
+                    pilot_speed += 2
+                elif pilot['ir'][series]['irating'] >= 1000:
+                    pilot_speed += 1
+
+                pilot['ir']['speed'] = pilot_speed
 
     return new_good_crews
 
@@ -91,8 +118,21 @@ async def update_crews(crews_sheet: Worksheet, grouped_good_crews, message, publ
             crews_sheet.update_acell(f'{cells_mapping['nickname']}{index}', f'{pilot['nickname']}')
             time.sleep(1)
 
+            activity_stars = '☆☆☆☆☆'
+            for i in range(0, pilot['ir']['activity']):
+                activity_stars = activity_stars[:i] + '★' + activity_stars[i + 1:]
+            crews_sheet.update_acell(f'{cells_mapping['pilot_activity']}{index}', f'{activity_stars}')
+            time.sleep(1)
+
+            speed_stars = '☆☆☆☆☆'
+            for i in range(0, pilot['ir']['speed']):
+                speed_stars = speed_stars[:i] + '★' + speed_stars[i + 1:]
+            crews_sheet.update_acell(f'{cells_mapping['pilot_speed']}{index}', f'{speed_stars}')
+            time.sleep(1)
+
             if pilot == value['pilots'][-1]:
-                crews_sheet.update_acell(f'{cells_mapping['team_name']}{index}', f'{key}')
+                #crews_sheet.update_acell(f'{cells_mapping['team_name']}{index}', f'{key}')
+                crews_sheet.update_acell(f'{cells_mapping['team_name']}{index}', f'=IMAGE("{value["team_logo"]}")')
                 time.sleep(1)
                 crews_sheet.merge_cells(f'{cells_mapping['team_name']}{index}:{cells_mapping['team_name']}{index - (len(value['pilots']) - 1)}', merge_type='MERGE_ALL')
                 time.sleep(1)
@@ -102,12 +142,22 @@ async def update_crews(crews_sheet: Worksheet, grouped_good_crews, message, publ
                 crews_sheet.merge_cells(f'{cells_mapping['sof']}{index}:{cells_mapping['sof']}{index - (len(value['pilots']) - 1)}', merge_type='MERGE_ALL')
                 time.sleep(1)
 
-                crews_sheet.update_acell(f'{cells_mapping['avg_age']}{index}', f'{round(value['avg_age'])}')
+                crews_sheet.update_acell(f'{cells_mapping['avg_age']}{index}', f'{value['avg_age']}')
                 time.sleep(1)
                 crews_sheet.merge_cells(f'{cells_mapping['avg_age']}{index}:{cells_mapping['avg_age']}{index - (len(value['pilots']) - 1)}', merge_type='MERGE_ALL')
                 time.sleep(1)
 
+                if crew_index % 2 == 0:
+                    crews_sheet.format(f'A{index}:{last_cell}{index - (len(value['pilots']) - 1)}', {
+                        "backgroundColor": {
+                            "red": 0.93,
+                            "green": 0.93,
+                            "blue": 0.93
+                        }
+                    })
+
             index += 1
+
 
 
 class Crews(commands.Cog, name='Crews'):
@@ -188,6 +238,7 @@ class Crews(commands.Cog, name='Crews'):
             await ctx.send(embed=discord.Embed(title=f'Ошибки',
                                        description=f'**❌ Не обновлены экпиажи - {len(final_bad_crews)}:**\n{'\n'.join(final_bad_crews)}',
                                        colour=discord.Color.red()))
+
 
 async def setup(bot: commands.Cog):
     await bot.add_cog(Crews(bot))

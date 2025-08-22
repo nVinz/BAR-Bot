@@ -1,6 +1,4 @@
 import configparser
-import os
-
 from discord.ext import commands
 
 class ConfigUtils(commands.Cog, name='ConfigUtils'):
@@ -12,6 +10,7 @@ class ConfigUtils(commands.Cog, name='ConfigUtils'):
 
         self.tokens = configparser.ConfigParser()
         self.tokens.read('cfg/tokens.ini')
+
 
 async def setup(bot: commands.Cog):
     await bot.add_cog(ConfigUtils(bot))

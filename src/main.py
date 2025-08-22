@@ -2,9 +2,9 @@ import logging
 import asyncio
 import configparser
 import os
-
 import discord
 from discord.ext import commands
+
 
 intents = discord.Intents.all()
 intents.message_content = True
@@ -13,7 +13,6 @@ intents.guild_messages = True
 
 
 async def main(token):
-
     async with bot:
         for filename in os.listdir('src/utils'):
             if filename.endswith('.py'):
@@ -24,6 +23,7 @@ async def main(token):
                 await bot.load_extension(f'cogs.{filename[:-3]}')
 
         await bot.start(token)
+
 
 if __name__ == '__main__':
     bot = commands.Bot(command_prefix='!',intents=intents)
@@ -40,6 +40,3 @@ if __name__ == '__main__':
         logging.basicConfig(level=logging.ERROR)
 
     asyncio.run(main(tokens['Tokens']['discord']))
-
-
-

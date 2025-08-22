@@ -16,7 +16,8 @@ async def parse_teams(teams_sheet: Worksheet, teams_count, message, settings_lin
 
         # 0 = Название, 1 = Лого
         teams.append({
-            'name': team_data[0]
+            'name': team_data[0],
+            'logo': team_data[1]
         })
 
     return teams
