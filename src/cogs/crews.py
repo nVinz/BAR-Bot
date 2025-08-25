@@ -4,8 +4,8 @@ import discord
 from discord.ext import commands
 from itertools import groupby
 from gspread import Worksheet
-from src.cogs.pilots import parse_pilots, parse_member_profile
-from src.cogs.teams import parse_teams
+from pilots import parse_pilots, parse_member_profile
+from teams import parse_teams
 from src.utils.google_sheets_utils import cleanup
 
 
