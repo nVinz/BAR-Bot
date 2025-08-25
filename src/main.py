@@ -27,9 +27,9 @@ async def main(token):
 if __name__ == '__main__':
     bot = commands.Bot(command_prefix='!',intents=intents)
 
-    if os.environ['logging'] == 'DEBUG':
+    if os.environ['LOGGING'] == 'DEBUG':
         logging.basicConfig(level=logging.DEBUG)
     else:
         logging.basicConfig(level=logging.ERROR)
 
-    asyncio.run(main(os.environ['discord_token']))
+    asyncio.run(main(os.environ['DISCORD_TOKEN']))
