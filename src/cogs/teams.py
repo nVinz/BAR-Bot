@@ -6,7 +6,7 @@ from gspread import Worksheet
 
 
 async def parse_teams(teams_sheet: Worksheet, teams_count, message):
-    settings_link = f'https://docs.google.com/spreadsheets/d/{os.environ['settings_sheet']}'
+    settings_link = f'https://docs.google.com/spreadsheets/d/{os.environ['SETTINGS_SHEET']}'
     teams = []
     for index in range(2, teams_count + 2):  # Старт со 2й строки
         team_data = teams_sheet.row_values(index)

@@ -49,9 +49,9 @@ class GoogleSheetsUtils(commands.Cog, name='GoogleSheetsUtils'):
 
         self.gc = gspread.service_account_from_dict(credentials)
 
-        self.settings_sheet = self.gc.open_by_key(os.environ['settings_sheet'])
+        self.settings_sheet = self.gc.open_by_key(os.environ['SETTINGS_SHEET'])
 
-        self.public_sheet = self.gc.open_by_key(os.environ['public_sheet'])
+        self.public_sheet = self.gc.open_by_key(os.environ['PUBLIC_SHEET'])
 
 
 async def setup(bot: commands.Cog):

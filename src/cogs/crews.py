@@ -23,7 +23,7 @@ cells_mapping = {
 last_cell = 'G'
 
 async def parse_crews(crews_sheet: Worksheet, crews_count, good_pilots, teams, message):
-    settings_link = f'https://docs.google.com/spreadsheets/d/{os.environ['settings_sheet']}'
+    settings_link = f'https://docs.google.com/spreadsheets/d/{os.environ['SETTINGS_SHEET']}'
     good_crews = []
     bad_crews = []
     for index in range(2, crews_count + 2):  # Старт со 2й строки
@@ -184,7 +184,7 @@ class Crews(commands.Cog, name='Crews'):
         crews_count = len(crews_sheet.col_values(1)) - 1  # Минус заголовок
 
         crews_public_sheet = self.public_sheet.worksheet('Экипажи')
-        public_link = f'https://docs.google.com/spreadsheets/d/{os.environ['public_sheet']}'
+        public_link = f'https://docs.google.com/spreadsheets/d/{os.environ['PUBLIC_SHEET']}'
 
         message = await ctx.send(embed=discord.Embed(title=f'Найдено настроек экипажей: *{crews_count}*',
                                            description=f'🕐 Обновление...',

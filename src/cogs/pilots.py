@@ -54,7 +54,7 @@ def calculate_cell_background_color(rgb):
 
 
 async def parse_pilots(pilots_sheet: Worksheet, pilots_count, message):
-    settings_link = f'https://docs.google.com/spreadsheets/d/{os.environ['settings_sheet']}'
+    settings_link = f'https://docs.google.com/spreadsheets/d/{os.environ['SETTINGS_SHEET']}'
     good_pilots = []
     bad_pilots = []
     for index in range(2, pilots_count + 2):  # Старт со 2й строки
@@ -204,7 +204,7 @@ async def parse_member_profile(good_pilots, iracing_client, message):
 
 
 async def update_pilots(pilots_sheet: Worksheet, good_pilots, message):
-    public_link = f'https://docs.google.com/spreadsheets/d/{os.environ['public_sheet']}'
+    public_link = f'https://docs.google.com/spreadsheets/d/{os.environ['PUBLIC_SHEET']}'
 
     for index, good_pilot in enumerate(good_pilots, start=2): # со 2й строки таблицы
         await message.edit(embed=discord.Embed(title=f'Настроенных пилотов: *{len(good_pilots)}*',
@@ -342,7 +342,7 @@ class Pilots(commands.Cog, name='Pilots'):
             for good_pilot in good_pilots:
                 final_good_pilots.append(good_pilot['nickname'])
             await message.edit(embed=discord.Embed(title=f'Готово',
-                                                   description=f'**✅ [Обновлено](https://docs.google.com/spreadsheets/d/{os.environ['public_sheet']}) {len(good_pilots)} пилотов:**\n{'\n'.join(final_good_pilots)}',
+                                                   description=f'**✅ [Обновлено](https://docs.google.com/spreadsheets/d/{os.environ['PUBLIC_SHEET']}) {len(good_pilots)} пилотов:**\n{'\n'.join(final_good_pilots)}',
                                                    colour=discord.Color.green()))
 
             # Not OK

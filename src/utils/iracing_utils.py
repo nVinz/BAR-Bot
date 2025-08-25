@@ -8,8 +8,8 @@ class IracingUtils(commands.Cog, name='IracingUtils'):
     def __init__(self, bot):
         self.bot = bot
 
-        self.iracing_client = irDataClient(username=os.environ['ir_login'],
-                                           password=os.environ['ir_password'])
+        self.iracing_client = irDataClient(username=os.environ['IR_LOGIN'],
+                                           password=os.environ['IR_PASSWORD'])
 
 
 async def setup(bot: commands.Cog):
