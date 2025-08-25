@@ -1,3 +1,4 @@
+import os
 import time
 import discord
 from discord.ext import commands
@@ -21,7 +22,8 @@ cells_mapping = {
 
 last_cell = 'G'
 
-async def parse_crews(crews_sheet: Worksheet, crews_count, good_pilots, teams, message, settings_link):
+async def parse_crews(crews_sheet: Worksheet, crews_count, good_pilots, teams, message):
+    settings_link = f'https://docs.google.com/spreadsheets/d/{os.environ['settings_sheet']}'
     good_crews = []
     bad_crews = []
     for index in range(2, crews_count + 2):  # Старт со 2й строки
@@ -163,7 +165,6 @@ async def update_crews(crews_sheet: Worksheet, grouped_good_crews, message, publ
 class Crews(commands.Cog, name='Crews'):
     def __init__(self, bot):
         self.bot = bot
-        self.config = self.bot.get_cog('ConfigUtils').config
 
         self.iracing_client = self.bot.get_cog('IracingUtils').iracing_client
 
@@ -175,7 +176,6 @@ class Crews(commands.Cog, name='Crews'):
     async def update_crews_command(self, ctx):
         pilots_sheet = self.settings_sheet.worksheet('Участники')
         pilots_count = len(pilots_sheet.col_values(1)) - 1  # Минус заголовок
-        settings_link = f'https://docs.google.com/spreadsheets/d/{self.config['Keys']['settings_sheet']}'
 
         teams_sheet = self.settings_sheet.worksheet('Команды')
         teams_count = len(teams_sheet.col_values(1)) - 1  # Минус заголовок
@@ -184,7 +184,7 @@ class Crews(commands.Cog, name='Crews'):
         crews_count = len(crews_sheet.col_values(1)) - 1  # Минус заголовок
 
         crews_public_sheet = self.public_sheet.worksheet('Экипажи')
-        public_link = f'https://docs.google.com/spreadsheets/d/{self.config['Keys']['public_sheet']}'
+        public_link = f'https://docs.google.com/spreadsheets/d/{os.environ['public_sheet']}'
 
         message = await ctx.send(embed=discord.Embed(title=f'Найдено настроек экипажей: *{crews_count}*',
                                            description=f'🕐 Обновление...',
@@ -192,11 +192,11 @@ class Crews(commands.Cog, name='Crews'):
 
         # Парсинг Google Docs
         # [Пилоты]
-        good_pilots, bad_pilots = await parse_pilots(pilots_sheet, pilots_count, message, settings_link)
+        good_pilots, bad_pilots = await parse_pilots(pilots_sheet, pilots_count, message)
         # [Команды]
-        teams = await parse_teams(teams_sheet, teams_count, message, settings_link)
+        teams = await parse_teams(teams_sheet, teams_count, message)
         # [Экипажи]
-        good_crews, bad_crews = await parse_crews(crews_sheet, crews_count, good_pilots, teams, message, settings_link)
+        good_crews, bad_crews = await parse_crews(crews_sheet, crews_count, good_pilots, teams, message)
 
         # Парсинг iRacing
         # /member_profile -> ['ir']

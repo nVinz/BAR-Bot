@@ -1,3 +1,4 @@
+import os
 import time
 import discord
 from discord.ext import commands
@@ -52,7 +53,8 @@ def calculate_cell_background_color(rgb):
     }
 
 
-async def parse_pilots(pilots_sheet: Worksheet, pilots_count, message, settings_link):
+async def parse_pilots(pilots_sheet: Worksheet, pilots_count, message):
+    settings_link = f'https://docs.google.com/spreadsheets/d/{os.environ['settings_sheet']}'
     good_pilots = []
     bad_pilots = []
     for index in range(2, pilots_count + 2):  # Старт со 2й строки
@@ -201,7 +203,9 @@ async def parse_member_profile(good_pilots, iracing_client, message):
     return good_pilots
 
 
-async def update_pilots(pilots_sheet: Worksheet, good_pilots, message, public_link):
+async def update_pilots(pilots_sheet: Worksheet, good_pilots, message):
+    public_link = f'https://docs.google.com/spreadsheets/d/{os.environ['public_sheet']}'
+
     for index, good_pilot in enumerate(good_pilots, start=2): # со 2й строки таблицы
         await message.edit(embed=discord.Embed(title=f'Настроенных пилотов: *{len(good_pilots)}*',
                                            description=f'**⏳ Шаг 3**\n✅ Загрузка из Google Sheets\n✅ Загрузка из iRacing\n⬆️Выгрузка в [Google Sheets]({public_link}): {good_pilot['nickname']} ({index-1}/{len(good_pilots)})',
@@ -295,7 +299,6 @@ async def update_pilots(pilots_sheet: Worksheet, good_pilots, message, public_li
 class Pilots(commands.Cog, name='Pilots'):
     def __init__(self, bot):
         self.bot = bot
-        self.config = self.bot.get_cog('ConfigUtils').config
 
         self.iracing_client = self.bot.get_cog('IracingUtils').iracing_client
 
@@ -307,10 +310,8 @@ class Pilots(commands.Cog, name='Pilots'):
     async def update_pilots_command(self, ctx):
         pilots_sheet = self.settings_sheet.worksheet('Участники')
         pilots_count = len(pilots_sheet.col_values(1)) - 1 # Минус заголовок
-        settings_link = f'https://docs.google.com/spreadsheets/d/{self.config['Keys']['settings_sheet']}'
 
         pilots_public_sheet = self.public_sheet.worksheet('Пилоты')
-        public_link = f'https://docs.google.com/spreadsheets/d/{self.config['Keys']['public_sheet']}'
 
         message = await ctx.send(embed=discord.Embed(title=f'Найдено пилотов: *{pilots_count}*',
                                            description=f'⏳ Обновление...',
@@ -319,7 +320,7 @@ class Pilots(commands.Cog, name='Pilots'):
         # Парсинг Google Docs (закрытый)
         # [Пилоты] -> {}
         try:
-            good_pilots, bad_pilots = await parse_pilots(pilots_sheet, pilots_count, message, settings_link)
+            good_pilots, bad_pilots = await parse_pilots(pilots_sheet, pilots_count, message)
         except:
             await ctx.send(embed=discord.Embed(title=f'ОШИБКА',
                                                description=f'При чтении листа [Пилоты]',
@@ -334,14 +335,14 @@ class Pilots(commands.Cog, name='Pilots'):
             cleanup(pilots_public_sheet)
 
             # Апдейт Google Docs (публичный)
-            await update_pilots(pilots_public_sheet, good_pilots, message, public_link)
+            await update_pilots(pilots_public_sheet, good_pilots, message)
 
             # OK
             final_good_pilots = []
             for good_pilot in good_pilots:
                 final_good_pilots.append(good_pilot['nickname'])
             await message.edit(embed=discord.Embed(title=f'Готово',
-                                                   description=f'**✅ [Обновлено]({public_link}) {len(good_pilots)} пилотов:**\n{'\n'.join(final_good_pilots)}',
+                                                   description=f'**✅ [Обновлено](https://docs.google.com/spreadsheets/d/{os.environ['public_sheet']}) {len(good_pilots)} пилотов:**\n{'\n'.join(final_good_pilots)}',
                                                    colour=discord.Color.green()))
 
             # Not OK

@@ -1,6 +1,5 @@
 import logging
 import asyncio
-import configparser
 import os
 import discord
 from discord.ext import commands
@@ -28,16 +27,9 @@ async def main(token):
 if __name__ == '__main__':
     bot = commands.Bot(command_prefix='!',intents=intents)
 
-    config = configparser.ConfigParser()
-    config.read('cfg/config.ini')
-
-    tokens = configparser.ConfigParser()
-    tokens.read('cfg/tokens.ini')
-
-    if config['Logging']['level'] == 'DEBUG':
+    if os.environ['logging'] == 'DEBUG':
         logging.basicConfig(level=logging.DEBUG)
     else:
         logging.basicConfig(level=logging.ERROR)
 
-    asyncio.run(main(tokens['Tokens']['discord']))
-
+    asyncio.run(main(os.environ['discord_token']))

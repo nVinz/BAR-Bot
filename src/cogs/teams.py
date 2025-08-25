@@ -1,10 +1,12 @@
+import os
 import time
 import discord
 from discord.ext import commands
 from gspread import Worksheet
 
 
-async def parse_teams(teams_sheet: Worksheet, teams_count, message, settings_link):
+async def parse_teams(teams_sheet: Worksheet, teams_count, message):
+    settings_link = f'https://docs.google.com/spreadsheets/d/{os.environ['settings_sheet']}'
     teams = []
     for index in range(2, teams_count + 2):  # Старт со 2й строки
         team_data = teams_sheet.row_values(index)
@@ -26,7 +28,6 @@ async def parse_teams(teams_sheet: Worksheet, teams_count, message, settings_lin
 class Teams(commands.Cog, name='Teams'):
     def __init__(self, bot):
         self.bot = bot
-        self.config = self.bot.get_cog('ConfigUtils').config
 
         self.iracing_client = self.bot.get_cog('IracingUtils').iracing_client
 

@@ -1,3 +1,5 @@
+import os
+
 import gspread
 from discord.ext import commands
 from gspread import Worksheet
@@ -31,11 +33,9 @@ class GoogleSheetsUtils(commands.Cog, name='GoogleSheetsUtils'):
     def __init__(self, bot):
         self.bot = bot
 
-        self.config = self.bot.get_cog('ConfigUtils').config
+        self.settings_sheet = gspread.service_account().open_by_key(os.environ['settings_sheet'])
 
-        self.settings_sheet = gspread.service_account().open_by_key(self.config['Keys']['settings_sheet'])
-
-        self.public_sheet = gspread.service_account().open_by_key(self.config['Keys']['public_sheet'])
+        self.public_sheet = gspread.service_account().open_by_key(os.environ['public_sheet'])
 
 
 async def setup(bot: commands.Cog):
