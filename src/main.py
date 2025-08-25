@@ -40,3 +40,4 @@ if __name__ == '__main__':
         logging.basicConfig(level=logging.ERROR)
 
     asyncio.run(main(tokens['Tokens']['discord']))
+
