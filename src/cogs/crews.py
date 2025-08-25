@@ -134,7 +134,7 @@ async def update_crews(crews_sheet: Worksheet, grouped_good_crews, message, publ
 
             if pilot == value['pilots'][-1]:
                 #crews_sheet.update_acell(f'{cells_mapping['team_name']}{index}', f'=IMAGE("{value["team_logo"]}")')
-                crews_sheet.update_acell(f'{cells_mapping['team_name']}{index}', f'{value['team_name']}')
+                crews_sheet.update_acell(f'{cells_mapping['team_name']}{index}', f'{value}')
                 time.sleep(1)
                 crews_sheet.merge_cells(f'{cells_mapping['team_name']}{index}:{cells_mapping['team_name']}{index - (len(value['pilots']) - 1)}', merge_type='MERGE_ALL')
                 time.sleep(1)
