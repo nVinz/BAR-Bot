@@ -138,15 +138,16 @@ async def parse_member_profile(good_pilots, iracing_client, message):
             for recent_race in good_pilot['ir']['recent_races']:
                 license_category = recent_race['license_category']
 
-                if 'license_change' in good_pilot['ir'][license_category]:
-                    good_pilot['ir'][license_category]['license_change'] = round(good_pilot['ir'][license_category]['license_change'] + recent_race['license_change'], 1)
-                else:
-                    good_pilot['ir'][license_category]['license_change'] = round(recent_race['license_change'], 1)
+                if license_category != 'Dirt Oval':
+                    if 'license_change' in good_pilot['ir'][license_category]:
+                        good_pilot['ir'][license_category]['license_change'] = round(good_pilot['ir'][license_category]['license_change'] + recent_race['license_change'], 1)
+                    else:
+                        good_pilot['ir'][license_category]['license_change'] = round(recent_race['license_change'], 1)
 
-                if 'irating_change' in good_pilot['ir'][license_category]:
-                    good_pilot['ir'][license_category]['irating_change'] = round(good_pilot['ir'][license_category]['irating_change'] + recent_race['irating_change'])
-                else:
-                    good_pilot['ir'][license_category]['irating_change'] = round(recent_race['license_change'])
+                    if 'irating_change' in good_pilot['ir'][license_category]:
+                        good_pilot['ir'][license_category]['irating_change'] = round(good_pilot['ir'][license_category]['irating_change'] + recent_race['irating_change'])
+                    else:
+                        good_pilot['ir'][license_category]['irating_change'] = round(recent_race['license_change'])
 
         last_login = ir_profile['member_info']['last_login'][:10] # обрезка YYYY-MM-DD
         good_pilot['ir']['last_login'] = f'{datetime.strptime(last_login, '%Y-%m-%d').strftime('%d.%m.%Y')}'
