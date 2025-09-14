@@ -206,11 +206,14 @@ async def parse_member_profile(good_pilots, iracing_client, message):
 
 async def update_pilots(pilots_sheet: Worksheet, good_pilots, message):
     public_link = f'https://docs.google.com/spreadsheets/d/{os.environ['PUBLIC_SHEET']}'
+    await message.edit(embed=discord.Embed(title=f'Настроенных пилотов: *{len(good_pilots)}*',
+                                           description=f'**⏳ Шаг 3**\n✅ Загрузка из Google Sheets\n✅ Загрузка из iRacing\n⬆️Выгрузка в [Google Sheets]({public_link}) ({len(good_pilots)} шт)',
+                                           colour=discord.Color.green()))
 
     for index, good_pilot in enumerate(good_pilots, start=2): # со 2й строки таблицы
-        await message.edit(embed=discord.Embed(title=f'Настроенных пилотов: *{len(good_pilots)}*',
+        """await message.edit(embed=discord.Embed(title=f'Настроенных пилотов: *{len(good_pilots)}*',
                                            description=f'**⏳ Шаг 3**\n✅ Загрузка из Google Sheets\n✅ Загрузка из iRacing\n⬆️Выгрузка в [Google Sheets]({public_link}): {good_pilot['nickname']} ({index-1}/{len(good_pilots)})',
-                                           colour=discord.Color.green()))
+                                           colour=discord.Color.green()))"""
 
         pilots_sheet.update_acell(f'{cells_mapping['nickname']}{index}', f'{good_pilot['nickname']}')
         time.sleep(1)
