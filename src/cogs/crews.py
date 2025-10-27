@@ -193,7 +193,7 @@ class Crews(commands.Cog, name='Crews'):
         crews_sheet = self.settings_sheet.worksheet('Экипажи')
         crews_count = len(crews_sheet.col_values(1)) - 1  # Минус заголовок
 
-        crews_public_sheet = self.public_sheet.worksheet('Экипажи')
+        crews_public_sheet = self.public_sheet.worksheet('Crews')
         public_link = f'https://docs.google.com/spreadsheets/d/{os.environ['PUBLIC_SHEET']}'
 
         message = await ctx.send(embed=discord.Embed(title=f'Найдено настроек экипажей: *{crews_count}*',

@@ -164,13 +164,13 @@ async def parse_member_profile(good_pilots, iracing_client, message):
         last_login_diff = (datetime.today() - datetime.strptime(last_login, '%Y-%m-%d')).days
         good_pilot['ir']['last_login_diff_raw'] = last_login_diff
 
-        last_login_days = 'дней'
+        last_login_days = 'days'
         if last_login_diff % 10 in [1]:
-            last_login_days = 'день'
+            last_login_days = 'day'
         elif last_login_diff % 10 in [2,3,4]:
-            last_login_days = 'дня'
+            last_login_days = 'day'
 
-        good_pilot['ir']['last_login_diff'] = f'{'сегодня' if last_login_diff == 0 else f'{last_login_diff} {last_login_days} назад'}'
+        good_pilot['ir']['last_login_diff'] = f'{'today' if last_login_diff == 0 else f'{last_login_diff} {last_login_days} ago'}'
 
         if ir_profile['recent_events'] is not None:
             races = ir_profile['recent_events']
@@ -324,7 +324,7 @@ class Pilots(commands.Cog, name='Pilots'):
         pilots_sheet = self.settings_sheet.worksheet('Участники')
         pilots_count = len(pilots_sheet.col_values(1)) - 1 # Минус заголовок
 
-        pilots_public_sheet = self.public_sheet.worksheet('Пилоты')
+        pilots_public_sheet = self.public_sheet.worksheet('Pilots')
 
         message = await ctx.send(embed=discord.Embed(title=f'Найдено пилотов: *{pilots_count}*',
                                            description=f'⏳ Обновление...',
