@@ -8,13 +8,18 @@ from gspread import Worksheet
 async def parse_teams(teams_sheet: Worksheet, teams_count, message):
     settings_link = f'https://docs.google.com/spreadsheets/d/{os.environ['SETTINGS_SHEET']}'
     teams = []
+
+    await message.edit(embed=discord.Embed(title=f'Найдено команд: *{teams_count}*',
+                                           description=f'**⏳ Шаг 1**\n⬇️ Загрузка из [Google Sheets]({settings_link})...',
+                                           colour=discord.Color.green()))
+
     for index in range(2, teams_count + 2):  # Старт со 2й строки
         team_data = teams_sheet.row_values(index)
         time.sleep(1)
 
-        await message.edit(embed=discord.Embed(title=f'Найдено команд: *{teams_count}*',
+        """await message.edit(embed=discord.Embed(title=f'Найдено команд: *{teams_count}*',
                                            description=f'**⏳ Шаг 1**\n⬇️ Загрузка из [Google Sheets]({settings_link}): {team_data[0]} ({index-1}/{teams_count})',
-                                           colour=discord.Color.green()))
+                                           colour=discord.Color.green()))"""
 
         # 0 = Название, 1 = Лого
         teams.append({

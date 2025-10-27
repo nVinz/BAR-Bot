@@ -26,13 +26,18 @@ async def parse_crews(crews_sheet: Worksheet, crews_count, good_pilots, teams, m
     settings_link = f'https://docs.google.com/spreadsheets/d/{os.environ['SETTINGS_SHEET']}'
     good_crews = []
     bad_crews = []
+
+    await message.edit(embed=discord.Embed(title=f'Найдено настроек экипажей: *{crews_count}*',
+                                           description=f'**⏳ Шаг 1**\n⬇️ Загрузка из [Google Sheets]({settings_link})...',
+                                           colour=discord.Color.green()))
+
     for index in range(2, crews_count + 2):  # Старт со 2й строки
         crew_data = crews_sheet.row_values(index)
         time.sleep(1)
 
-        await message.edit(embed=discord.Embed(title=f'Найдено настроек экипажей: *{crews_count}*',
+        """await message.edit(embed=discord.Embed(title=f'Найдено настроек экипажей: *{crews_count}*',
                                            description=f'**⏳ Шаг 1**\n⬇️ Загрузка из [Google Sheets]({settings_link}): {crew_data[0]} - {crew_data[1]} ({index-1}/{crews_count})',
-                                           colour=discord.Color.green()))
+                                           colour=discord.Color.green()))"""
 
         # 0 = Команда, 1 = Никнейм, 2 = Роль
         pilot_is_correct = True if len([p for p in good_pilots if p['nickname'] == crew_data[1]]) == 1 else False
@@ -110,10 +115,15 @@ def calculate_averages(grouped_good_crews, good_pilots):
 async def update_crews(crews_sheet: Worksheet, grouped_good_crews, message, public_link):
     index = 2 # со 2й строки таблицы
     crew_index = 1
-    for key, value in grouped_good_crews.items():
-        await message.edit(embed=discord.Embed(title=f'Сформировано экипажей: *{len(grouped_good_crews)}*',
-                                           description=f'**⏳ Шаг 3**\n✅ Загрузка из Google Sheets\n✅ Загрузка из iRacing\n⬆️Выгрузка в [Google Sheets]({public_link}): {key} ({crew_index}/{len(grouped_good_crews)})',
+
+    await message.edit(embed=discord.Embed(title=f'Сформировано экипажей: *{len(grouped_good_crews)}*',
+                                           description=f'**⏳ Шаг 3**\n✅ Загрузка из Google Sheets\n✅ Загрузка из iRacing\n⬆️Выгрузка в [Google Sheets]({public_link})...',
                                            colour=discord.Color.green()))
+
+    for key, value in grouped_good_crews.items():
+        """await message.edit(embed=discord.Embed(title=f'Сформировано экипажей: *{len(grouped_good_crews)}*',
+                                           description=f'**⏳ Шаг 3**\n✅ Загрузка из Google Sheets\n✅ Загрузка из iRacing\n⬆️Выгрузка в [Google Sheets]({public_link}): {key} ({crew_index}/{len(grouped_good_crews)})',
+                                           colour=discord.Color.green()))"""
         crew_index += 1
 
         for pilot in value['pilots']:
